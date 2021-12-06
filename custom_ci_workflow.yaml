@@ -1,0 +1,126 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Custom Workflows
+
+# Controls when the workflow will run
+on:
+  workflow_call:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: MinSizeRel
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  unit_test:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Check out Repository
+        uses: actions/checkout@v2
+
+      - uses: webfactory/ssh-agent@v0.5.3
+        with:
+            ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+      - name: Configure CMake Optimized
+        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Build
+        # Build your program with the given configuration
+        run: |
+          cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        # Execute tests defined by the CMake configuration.  
+        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        run: ctest -C ${{env.BUILD_TYPE}} -j 10
+        
+      - name: Upload Test Result
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: TestLog.txt
+          path: ${{github.workspace}}/build/Testing/Temporary/LastTest.log
+
+
+  coverage_test:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Check out Repository
+        uses: actions/checkout@v2
+
+      - uses: webfactory/ssh-agent@v0.5.3
+        with:
+            ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: install lcov
+        run: sudo apt-get install -y lcov
+    
+      - name: Configure CMake in Debug Mode
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
+
+      - name: Build in Debug Mode
+        run: |
+          cmake --build ${{github.workspace}}/build --config Debug
+
+      - name: Prepare Coverage Test
+        # Build your program with the given configuration
+        run: |
+          cmake --build ${{github.workspace}}/build --config Debug --target ccov-preprocessing
+
+      - name: Test in Debug Mode
+        working-directory: ${{github.workspace}}/build
+        # Execute tests defined by the CMake configuration.  
+        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        run: ctest -C Debug -j 4
+
+      - name: Build Coverage Test
+        # Build your program with the given configuration
+        run: |
+          cmake --build ${{github.workspace}}/build --config Debug --target ccov-all
+        
+      - name: Upload Test Result
+        uses: actions/upload-artifact@v2
+        with:
+          name: CodeCoverage
+          path: ${{github.workspace}}/build/ccov
+
+  doxigen_test:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Check out Repository
+        uses: actions/checkout@v2
+
+      - name: install Doxygen
+        working-directory: ${{github.workspace}}/doc
+        run: sudo apt-get install -y doxygen
+
+      - name: run Doxygen
+        working-directory: ${{github.workspace}}/doc
+        # Execute doxygen and generate documentation to check for doxygen warnings and errors.
+        #
+        # At the time of writing this Ubuntu 20.04 comes with doxygen 1.8.17 which does not support FAIL_ON_WARNINGS.
+        # The following line will read out Doxyfile, override WARN_AS_ERROR to YES (by appending a line) and pipe the configuration over to doxygen.
+        run: ( cat Doxyfile ; echo "WARN_AS_ERROR=YES" ) | doxygen -
