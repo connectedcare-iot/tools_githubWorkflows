@@ -80,7 +80,7 @@ jobs:
           name: CodeCoverage
           path: ${{github.workspace}}/build/ccov
 
-  doxigen_test:
+  doxygen_test:
     runs-on: ubuntu-latest
 
     steps:
