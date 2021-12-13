@@ -22,7 +22,7 @@ jobs:
             ssh-private-key: ${{ secrets.ssh_private_key }}
     
       - name: Configure CMake Optimized
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGIT_SUBMODULE=ON
 
       - name: Build
         run: |
@@ -56,7 +56,7 @@ jobs:
         run: sudo apt-get install -y lcov
     
       - name: Configure CMake in Debug Mode
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON -DGIT_SUBMODULE=ON
 
       - name: Build in Debug Mode
         run: |
