@@ -4,6 +4,8 @@ on:
     secrets:
       ssh_private_key:
         required: true
+      ssh_package_token:
+        required: true
 
 env:
   BUILD_TYPE: MinSizeRel
@@ -16,7 +18,7 @@ jobs:
       image: ghcr.io/connectedcare-iot/unit_test_ci:latest
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.PACKAGE_READ_TOKEN }}
+        password: ${{ secrets.ssh_package_token }}
 
     steps:
 
@@ -52,7 +54,7 @@ jobs:
       image: ghcr.io/connectedcare-iot/unit_test_ci:latest
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.PACKAGE_READ_TOKEN }}
+        password: ${{ secrets.ssh_package_token }}
 
     steps:
 
