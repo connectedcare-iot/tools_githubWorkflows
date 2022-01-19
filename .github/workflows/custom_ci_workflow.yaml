@@ -4,6 +4,8 @@ on:
     secrets:
       ssh_private_key:
         required: true
+      ssh_package_token:
+        required: true
 
 env:
   BUILD_TYPE: MinSizeRel
@@ -12,6 +14,12 @@ env:
 jobs:
   unit_test:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/connectedcare-iot/unit_test_ci:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.ssh_package_token }}
+
     steps:
 
       - name: Check out Repository
@@ -22,14 +30,14 @@ jobs:
             ssh-private-key: ${{ secrets.ssh_private_key }}
     
       - name: Configure CMake Optimized
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGIT_SUBMODULE=ON
+        run: cmake -B ./build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGIT_SUBMODULE=ON
 
       - name: Build
         run: |
-          cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+          cmake --build ./build --config ${{env.BUILD_TYPE}}
 
       - name: Test
-        working-directory: ${{github.workspace}}/build
+        working-directory: ./build
         run: ctest -C ${{env.BUILD_TYPE}} -j 10
         
       - name: Upload Test Result
@@ -37,11 +45,16 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: TestLog.txt
-          path: ${{github.workspace}}/build/Testing/Temporary/LastTest.log
+          path: ./build/Testing/Temporary/LastTest.log
 
 
   coverage_test:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/connectedcare-iot/unit_test_ci:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.ssh_package_token }}
 
     steps:
 
@@ -51,46 +64,39 @@ jobs:
       - uses: webfactory/ssh-agent@v0.5.3
         with:
             ssh-private-key: ${{ secrets.ssh_private_key }}
-
-      - name: install lcov
-        run: sudo apt-get install -y lcov
     
       - name: Configure CMake in Debug Mode
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON -DGIT_SUBMODULE=ON
+        run: cmake -B ./build -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE=ON -DGIT_SUBMODULE=ON
 
       - name: Build in Debug Mode
         run: |
-          cmake --build ${{github.workspace}}/build --config Debug
+          cmake --build ./build --config Debug
 
       - name: Prepare Coverage Test
         run: |
-          cmake --build ${{github.workspace}}/build --config Debug --target ccov-preprocessing
+          cmake --build ./build --config Debug --target ccov-preprocessing
 
       - name: Test in Debug Mode
-        working-directory: ${{github.workspace}}/build
+        working-directory: ./build
         run: ctest -C Debug -j 10
 
       - name: Build Coverage Test
         run: |
-          cmake --build ${{github.workspace}}/build --config Debug --target ccov-all
+          cmake --build ./build --config Debug --target ccov-all
         
       - name: Upload Test Result
         uses: actions/upload-artifact@v2
         with:
           name: CodeCoverage
-          path: ${{github.workspace}}/build/ccov
+          path: ./build/ccov
 
   doxygen_test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out Repository
         uses: actions/checkout@v2
 
-      - name: install Doxygen
-        working-directory: ${{github.workspace}}/doc
-        run: sudo apt-get install -y doxygen
-
       - name: run Doxygen
-        working-directory: ${{github.workspace}}/doc
-        run: ( cat Doxyfile ; echo "WARN_AS_ERROR=YES" ) | doxygen -
+        uses: mattnotmitt/doxygen-action@v1.9.2
+        with:
+            working-directory: './doc'
