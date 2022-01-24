@@ -38,7 +38,7 @@ jobs:
 
       - name: Test
         working-directory: ./build
-        run: ctest -C ${{env.BUILD_TYPE}} -j 10
+        run: ctest -C ${{env.BUILD_TYPE}} -j 10 --output-on-failure
         
       - name: Upload Test Result
         if: always()
@@ -78,7 +78,7 @@ jobs:
 
       - name: Test in Debug Mode
         working-directory: ./build
-        run: ctest -C Debug -j 10
+        run: ctest -C Debug -j 10 --output-on-failure
 
       - name: Build Coverage Test
         run: |
