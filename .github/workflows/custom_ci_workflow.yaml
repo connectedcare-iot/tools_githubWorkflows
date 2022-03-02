@@ -23,7 +23,7 @@ jobs:
     steps:
 
       - name: Check out Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -59,7 +59,7 @@ jobs:
     steps:
 
       - name: Check out Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: run Doxygen
         uses: mattnotmitt/doxygen-action@v1.9.2
