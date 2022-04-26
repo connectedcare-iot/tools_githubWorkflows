@@ -42,7 +42,7 @@ jobs:
         
       - name: Upload Test Result
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: TestLog.txt
           path: ./build/Testing/Temporary/LastTest.log
@@ -85,7 +85,7 @@ jobs:
           cmake --build ./build --config Debug --target ccov-all
         
       - name: Upload Test Result
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: CodeCoverage
           path: ./build/ccov
@@ -102,7 +102,7 @@ jobs:
             working-directory: './doc'
         
       - name: Upload Documentation
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: DoxygenDocumentation
           path: ./doc/html
