@@ -15,7 +15,8 @@ jobs:
   unit_test:
     runs-on: ubuntu-latest
     permissions:
-      packages: read
+      contents: read
+      packages: write
     container:
       image: ghcr.io/connectedcare-iot/unit_test_ci:latest
       credentials:
@@ -54,7 +55,8 @@ jobs:
   coverage_test:
     runs-on: ubuntu-latest
     permissions:
-      packages: read
+      contents: read
+      packages: write
     container:
       image: ghcr.io/connectedcare-iot/unit_test_ci:latest
       credentials:
@@ -99,7 +101,8 @@ jobs:
   doxygen_test:
     runs-on: ubuntu-latest
     permissions:
-      packages: read
+      contents: read
+      packages: write
     steps:
       - name: Check out Repository
         uses: actions/checkout@v3
